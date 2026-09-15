@@ -1,36 +1,33 @@
-import sys
-from pathlib import Path
 from typing import Dict, Any, Optional
-
-# Ensure repository root and evaluation directory are in sys.path
-REPO_ROOT = Path(__file__).resolve().parents[3]
-EVAL_DIR = REPO_ROOT / "evaluation"
-
-for path_str in [str(REPO_ROOT), str(EVAL_DIR)]:
-    if path_str not in sys.path:
-        sys.path.insert(0, path_str)
-
-# Reuse existing retriever and agent evaluation logic
-import retriever
-import agent
+from app.services.classifier import classify_intent
+from app.services.retriever import retrieve_historical_resolution
+from app.services.reply_generator import generate_draft_reply
+from app.services.decision import evaluate_decision
 
 
 def analyze_customer_message(message: str) -> Dict[str, Any]:
-    """Execute the 5-stage AI support-agent pipeline on a customer inquiry.
+    """Execute the end-to-end 5-stage AI Support Agent pipeline.
 
-    Reuses existing logic from evaluation/retriever.py and evaluation/agent.py:
-    1. Intent classification (keyword rule-based baseline)
-    2. Intent-filtered historical resolution retrieval (TF-IDF cosine similarity)
-    3. Grounded draft reply generation
-    4. Auto-handle vs escalate decision
-    5. Decision rationale
+    Orchestration:
+    Customer Message
+            ↓
+    Classifier (classify_intent)
+            ↓
+    Retriever (retrieve_historical_resolution)
+            ↓
+    Reply Generator (generate_draft_reply)
+            ↓
+    Decision Engine (evaluate_decision)
+            ↓
+    Final Pipeline Response
 
     Returns:
-        Dict containing message, intent, confidence, historical_match,
-        similarity, draft_reply, decision, and decision_reason.
+        Dict matching AnalyzeResponse schema.
     """
-    cleaned_message = (message or "").strip()
-    if not cleaned_message:
+    clean_message = str(message or "").strip()
+
+    # Handle empty or invalid messages safely
+    if not clean_message:
         return {
             "message": message,
             "intent": "other_support_issue",
@@ -45,54 +42,40 @@ def analyze_customer_message(message: str) -> Dict[str, Any]:
             "decision_reason": "Customer message was empty or invalid."
         }
 
-    # 1. Intent Classification
-    intent = retriever.classify_intent(cleaned_message)
+    # 1. Intent Classification (Deterministic rule-based)
+    classification = classify_intent(clean_message)
+    intent = classification["intent"]
+    confidence = classification["confidence"]  # None (un-fabricated)
 
-    # 2. Historical Resolution Retrieval
-    historical_match: Optional[Dict[str, str]] = None
-    similarity: float = 0.0
-    draft: str = ""
-    decision: str = "ESCALATE"
-    reason: str = ""
+    # 2. Historical Resolution Retrieval (Intent-filtered TF-IDF)
+    retrieval = retrieve_historical_resolution(query=clean_message, intent=intent)
+    historical_match = retrieval.get("historical_match")
 
-    try:
-        results = retriever.retrieve(cleaned_message, top_k=1)
-        if results and len(results) > 0:
-            best = results[0]
-            similarity = float(best.get("similarity", 0.0))
-            historical_customer = str(best.get("customer_message", ""))
-            historical_response = str(best.get("support_response", ""))
+    similarity = retrieval.get("similarity", 0.0)
 
-            historical_match = {
-                "customer_message": historical_customer,
-                "support_response": historical_response
-            }
+    # 3. Grounded Draft Reply Generation
+    draft_reply = generate_draft_reply(
+        intent=intent,
+        historical_match=historical_match,
+        similarity=similarity
+    )
 
-            # 3. Draft Reply Generation
-            draft = agent.draft_reply(intent, historical_response)
+    # 4. Auto-Handle vs Escalate Decision & 5. Decision Reason
+    decision_result = evaluate_decision(
+        intent=intent,
+        similarity=similarity,
+        historical_match=historical_match
+    )
+    decision = decision_result["decision"]
+    decision_reason = decision_result["reason"]
 
-            # 4. Auto-handle vs Escalate Decision & 5. Decision Reason
-            decision, reason = agent.decide_action(intent, similarity, historical_response)
-        else:
-            draft = agent.draft_reply(intent, "")
-            decision = "ESCALATE"
-            reason = "No historical resolution match was found in the resolution corpus."
-
-    except Exception as exc:
-        # Fallback gracefully in case of retrieval or parsing errors
-        draft = agent.draft_reply(intent, "")
-        decision = "ESCALATE"
-        reason = f"Retrieval encountered an unexpected issue: {str(exc)}"
-
-    # Note on confidence: The rule-based classifier does not compute calibrated
-    # probabilities, so confidence is strictly returned as None (null) without fabrication.
     return {
-        "message": cleaned_message,
+        "message": clean_message,
         "intent": intent,
-        "confidence": None,
+        "confidence": confidence,
         "historical_match": historical_match,
         "similarity": similarity,
-        "draft_reply": draft,
+        "draft_reply": draft_reply,
         "decision": decision,
-        "decision_reason": reason
+        "decision_reason": decision_reason
     }
