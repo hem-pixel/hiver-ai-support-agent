@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_PATH = BASE_DIR / "data" / "uber_resolution_labeled.csv"
+DATA_PATH = BASE_DIR / "data" / "uber_resolution_demo.csv"
 
 print("Loading historical resolutions...")
 

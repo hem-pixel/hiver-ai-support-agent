@@ -7,3 +7,4 @@ venv/
 
 data/*.csv
 !data/golden_set.csv
+!data/uber_resolution_demo.csv
