@@ -22,51 +22,67 @@ def evaluate_decision(
     historical_match: Optional[Dict[str, str]],
     similarity_threshold: float = DEFAULT_SIMILARITY_THRESHOLD
 ) -> Dict[str, str]:
-    """Determine whether an inquiry should be AUTO_HANDLE or ESCALATE with justification.
+    """Determine whether an inquiry should be AUTO_HANDLE or ESCALATE.
+
+    Decision Policy:
+    AUTO_HANDLE only when:
+    - predicted intent is deterministic/clear
+    - usable historical resolution exists
+    - similarity >= 0.20
+    - historical response provides self-contained guidance
+    - no direct human intervention is required
 
     ESCALATE when:
-    - No historical match exists
-    - Similarity < 0.20 threshold
-    - Historical response indicates direct human support follow-up (DM, note, manual review)
-    - Sensitive account security issues require human verification
-
-    AUTO_HANDLE when:
-    - Sufficiently similar historical resolution exists (>= 0.20)
-    - Historical resolution is self-contained guidance without requiring direct human follow-up
+    - similarity < 0.20
+    - no usable historical resolution exists
+    - historical response requests DM/direct support
+    - issue requires identity verification/account action
+    - issue is ambiguous or requires an action the system cannot perform
     """
-    # 1. No historical match found
-    if not historical_match:
+    # 1. Similarity below threshold or no usable historical resolution exists
+    if not historical_match or similarity < similarity_threshold:
         return {
             "decision": "ESCALATE",
-            "reason": "No suitable historical resolution match was found in the resolution corpus."
+            "reason": (
+                f"No usable historical resolution found (similarity {similarity:.4f} "
+                f"is below {similarity_threshold:.2f} threshold)."
+            )
         }
 
-    # 2. Similarity below threshold
-    if similarity < similarity_threshold:
+    # 2. Ambiguous intent: other_support_issue is non-deterministic fallback
+    if intent == "other_support_issue":
         return {
             "decision": "ESCALATE",
-            "reason": f"No sufficiently similar historical resolution was found (similarity {similarity:.4f} is below {similarity_threshold:.2f} threshold)."
+            "reason": "Inquiry intent is ambiguous or unclassified; requires human agent triage."
+        }
+
+    # 3. Action system cannot perform: financial refund processing
+    if intent == "refund_request":
+        return {
+            "decision": "ESCALATE",
+            "reason": "Refund requests require transaction verification and authorized financial processing."
+        }
+
+    # 4. Issue requires identity verification or account-level action
+    if intent == "account_access_issue":
+        return {
+            "decision": "ESCALATE",
+            "reason": "Account access inquiries require secure identity verification and human support intervention."
         }
 
     raw_response = historical_match.get("support_response", "")
     response_lower = raw_response.lower()
 
-    # 3. Historical response indicates direct human follow-up
+    # 5. Historical response requests DM / direct support / manual review
     if any(phrase in response_lower for phrase in ESCALATION_PHRASES):
         return {
             "decision": "ESCALATE",
             "reason": "Historical responses indicate that this issue requires direct support follow-up."
         }
 
-    # 4. Sensitive issues requiring manual authentication
-    if intent == "account_access_issue" and "deactivated" in historical_match.get("customer_message", "").lower():
-        return {
-            "decision": "ESCALATE",
-            "reason": "Account access and deactivation inquiries require human agent identity verification."
-        }
-
-    # 5. Clear resolution ready for auto-handle
+    # 6. Clear deterministic intent with self-contained resolution guidance
     return {
         "decision": "AUTO_HANDLE",
-        "reason": f"A sufficiently similar historical resolution was found (similarity: {similarity:.4f}) with self-serve guidance."
+        "reason": f"A usable historical resolution was found (similarity: {similarity:.4f}) with self-contained guidance."
     }
+

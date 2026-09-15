@@ -24,11 +24,11 @@ The failure analysis reveals that classification errors predominantly concentrat
 
 1. **Message**: *"@2006 are you guys doing ride pass this month??? Would love to get that email has been very helpful to me and my family"*
    - **Similarity Score**: `0.2274`
-   - **Routing Decision**: `AUTO_HANDLE`
+   - **Routing Decision**: `ESCALATE`
 
 2. **Message**: *"@Uber_Support is there an email address or phone number to contact you at so I'm not airing my problems out on twitter?"*
    - **Similarity Score**: `0.2205`
-   - **Routing Decision**: `AUTO_HANDLE`
+   - **Routing Decision**: `ESCALATE`
 
 ---
 
@@ -58,7 +58,7 @@ The failure analysis reveals that classification errors predominantly concentrat
 
 1. **Message**: *"@115873 why can I add promo codes to my account?"*
    - **Similarity Score**: `0.3488`
-   - **Routing Decision**: `AUTO_HANDLE`
+   - **Routing Decision**: `ESCALATE`
 
 2. **Message**: *"@115873 got an email that my next ride was 50% off b/c of a crazy long wait. But promo in my app will only work in the UK. Can someone help?"*
    - **Similarity Score**: `0.1981`

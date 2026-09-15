@@ -1,9 +1,18 @@
 ======================================================================
 HISTORICAL RETRIEVAL ANALYSIS
 ======================================================================
-Total Evaluated:                  200
-Matches Found:                    200 (100.00%)
-No Match Found (sim <= 0.0):      0 (0.00%)
-Mean Similarity (matches):        0.2807
-Median Similarity (matches):      0.2317
-Below 0.20 Threshold:             66 (33.00%)
+Total Inquiries Evaluated:            200
+
+1. Nearest Candidates Found:         200 (100.00%)
+   - Mean Similarity (all candidates): 0.2807
+   - Median Similarity (all candidates): 0.2317
+
+2. Usable Historical Matches (>=0.20): 134 (67.00%)
+   - Mean Similarity (usable matches): 0.3357
+   - Median Similarity (usable matches): 0.2656
+
+3. Below-Threshold Retrieval (<0.20):  66 (33.00%)
+   - Excluded from historical_match (exposed as null)
+   - Triggers ESCALATE policy
+
+4. Zero Similarity / No Candidate:     0 (0.00%)

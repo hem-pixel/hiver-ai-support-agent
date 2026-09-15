@@ -163,34 +163,52 @@ PER-INTENT CLASSIFICATION BREAKDOWN
     print(f"ESCALATE:    {esc_count} ({esc_pct:.2f}%)")
 
     # 4. Retrieval Analysis
-    has_match_series = df_preds["historical_match"].notna()
-    match_count = has_match_series.sum()
-    match_pct = (match_count / total) * 100
-
-    similarities = df_preds.loc[has_match_series, "similarity"]
-    mean_sim = similarities.mean() if len(similarities) > 0 else 0.0
-    median_sim = similarities.median() if len(similarities) > 0 else 0.0
+    total = len(df_preds)
+    has_usable_match = df_preds["historical_match"].notna()
+    usable_match_count = has_usable_match.sum()
+    usable_match_pct = (usable_match_count / total) * 100
 
     below_threshold_count = (df_preds["similarity"] < 0.20).sum()
     below_threshold_pct = (below_threshold_count / total) * 100
 
-    no_match_count = total - match_count
-    no_match_pct = (no_match_count / total) * 100
+    candidate_found_count = (df_preds["similarity"] > 0.0).sum()
+    candidate_found_pct = (candidate_found_count / total) * 100
+
+    zero_candidate_count = (df_preds["similarity"] <= 0.0).sum()
+    zero_candidate_pct = (zero_candidate_count / total) * 100
+
+    usable_similarities = df_preds.loc[has_usable_match, "similarity"]
+    mean_usable_sim = usable_similarities.mean() if len(usable_similarities) > 0 else 0.0
+    median_usable_sim = usable_similarities.median() if len(usable_similarities) > 0 else 0.0
+
+    all_similarities = df_preds["similarity"]
+    mean_all_sim = all_similarities.mean() if len(all_similarities) > 0 else 0.0
+    median_all_sim = all_similarities.median() if len(all_similarities) > 0 else 0.0
 
     retrieval_text = f"""======================================================================
 HISTORICAL RETRIEVAL ANALYSIS
 ======================================================================
-Total Evaluated:                  {total}
-Matches Found:                    {match_count} ({match_pct:.2f}%)
-No Match Found (sim <= 0.0):      {no_match_count} ({no_match_pct:.2f}%)
-Mean Similarity (matches):        {mean_sim:.4f}
-Median Similarity (matches):      {median_sim:.4f}
-Below 0.20 Threshold:             {below_threshold_count} ({below_threshold_pct:.2f}%)
+Total Inquiries Evaluated:            {total}
+
+1. Nearest Candidates Found:         {candidate_found_count} ({candidate_found_pct:.2f}%)
+   - Mean Similarity (all candidates): {mean_all_sim:.4f}
+   - Median Similarity (all candidates): {median_all_sim:.4f}
+
+2. Usable Historical Matches (>=0.20): {usable_match_count} ({usable_match_pct:.2f}%)
+   - Mean Similarity (usable matches): {mean_usable_sim:.4f}
+   - Median Similarity (usable matches): {median_usable_sim:.4f}
+
+3. Below-Threshold Retrieval (<0.20):  {below_threshold_count} ({below_threshold_pct:.2f}%)
+   - Excluded from historical_match (exposed as null)
+   - Triggers ESCALATE policy
+
+4. Zero Similarity / No Candidate:     {zero_candidate_count} ({zero_candidate_pct:.2f}%)
 """
     retrieval_txt_path = RESULTS_DIR / "retrieval_metrics.txt"
     with open(retrieval_txt_path, "w", encoding="utf-8") as f:
         f.write(retrieval_text)
     print("\n" + retrieval_text)
+
 
 
 if __name__ == "__main__":

@@ -75,18 +75,27 @@ def retrieve_historical_resolution(query: str, intent: Optional[str] = None) -> 
     best_index = scores.argmax()
     best_similarity = float(scores[best_index])
 
-    # If no similarity or completely zero overlap, do NOT fabricate a match
+    # If zero overlap, do not fabricate a match
     if best_similarity <= 0.0:
         return {
             "historical_match": None,
-            "similarity": 0.0
+            "similarity": 0.0,
+            "nearest_candidate": None
         }
 
     best_row = filtered.iloc[best_index]
-    return {
-        "historical_match": {
-            "customer_message": str(best_row["customer_message"]),
-            "support_response": str(best_row["support_response"])
-        },
-        "similarity": round(best_similarity, 4)
+    candidate = {
+        "customer_message": str(best_row["customer_message"]),
+        "support_response": str(best_row["support_response"])
     }
+
+    # Semantics: A historical match is only usable when similarity >= 0.20.
+    # Below 0.20, expose historical_match = None while preserving similarity for diagnostics.
+    usable_match = candidate if best_similarity >= 0.20 else None
+
+    return {
+        "historical_match": usable_match,
+        "similarity": round(best_similarity, 4),
+        "nearest_candidate": candidate
+    }
+

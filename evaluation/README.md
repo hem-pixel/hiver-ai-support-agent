@@ -90,14 +90,29 @@ python evaluation/evaluate_agent.py
 
 ---
 
-## 5. Routing Decision Distribution
+## 5. Routing Decision Distribution & Policy
 
-The agent routes inquiries using the grounded decision policy:
-- **`ESCALATE`**: **145 inquiries (72.50%)**
-- **`AUTO_HANDLE`**: **55 inquiries (27.50%)**
+The agent evaluates incoming inquiries using the grounded decision policy:
+
+- **`ESCALATE`**: **169 inquiries (84.50%)**
+- **`AUTO_HANDLE`**: **31 inquiries (15.50%)**
+
+### Decision Policy Rules:
+- **`AUTO_HANDLE`** only when:
+  - Predicted intent is deterministic and clear (excludes ambiguous fallback `other_support_issue`)
+  - A usable historical resolution exists (`historical_match != null`)
+  - Cosine similarity $\ge 0.20$
+  - Historical support response provides self-contained resolution guidance
+  - No direct human intervention is required
+- **`ESCALATE`** when:
+  - Cosine similarity $< 0.20$ (retrieval match below threshold)
+  - No usable historical resolution exists (`historical_match == null`)
+  - Historical support response requests direct communication ("send us a DM", "contact us", "send us a note")
+  - Issue requires identity verification or account-level action (`account_access_issue`)
+  - Issue is ambiguous (`other_support_issue`) or requires actions the system cannot autonomously perform (`refund_request` financial disbursement)
 
 > [!NOTE]
-> `AUTO_HANDLE` reflects the agent's routing decision based on historical similarity ($\ge 0.20$) and absence of direct support follow-up phrases. It does not imply that the customer inquiry was trivially simple, but rather that safe, self-serve resolution guidance exists in the knowledge base.
+> Classifier confidence intentionally remains `null` because the deterministic intent classifier does not emit uncalibrated statistical probabilities. `AUTO_HANDLE` never depends on a fabricated confidence score.
 
 *Artifact*: `evaluation/results/decision_metrics.csv`
 
@@ -105,14 +120,22 @@ The agent routes inquiries using the grounded decision policy:
 
 ## 6. Historical Resolution Retrieval Analysis
 
+The evaluation distinguishes nearest candidate discovery from usable historical resolution matches:
+
 - **Total Inquiries Evaluated**: 200
-- **Resolution Matches Found**: 200 (100.00%)
-- **No Match Found**: 0 (0.00%)
-- **Mean Cosine Similarity**: **`0.2807`**
-- **Median Cosine Similarity**: **`0.2317`**
-- **Cases Below 0.20 Cutoff**: 66 (33.00%)
+- **1. Nearest Candidates Discovered**: **200 (100.00%)**
+  - Mean Similarity (all candidates): **`0.2807`**
+  - Median Similarity (all candidates): **`0.2317`**
+- **2. Usable Historical Matches ($\ge 0.20$)**: **134 (67.00%)**
+  - Mean Similarity (usable matches): **`0.3357`**
+  - Median Similarity (usable matches): **`0.2656`**
+- **3. Below-Threshold Retrieval ($< 0.20$)**: **66 (33.00%)**
+  - Excluded from `historical_match` (exposed as `null`)
+  - Correctly triggers the `ESCALATE` routing policy
+- **4. Zero Similarity / No Candidate ($\le 0.0$)**: **0 (0.00%)**
 
 *Artifact*: `evaluation/results/retrieval_metrics.txt`
+
 
 ---
 
