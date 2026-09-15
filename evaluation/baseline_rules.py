@@ -1,9 +1,12 @@
+from pathlib import Path
 import pandas as pd
 import re
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-DATA_PATH = r"D:\twcs\hiver_data\golden_set.csv"
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_PATH = BASE_DIR / "data" / "golden_set.csv"
+
 
 INTENT_KEYWORDS = {
     "uber_eats_issue": [

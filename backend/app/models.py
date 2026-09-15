@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -34,12 +34,13 @@ class HistoricalMatch(BaseModel):
 class AnalyzeResponse(BaseModel):
     """Support agent pipeline analysis response.
 
-    At this stage, fields return placeholder values as specified in Step 2.
+    Returns real intent, historical resolution match, similarity score,
+    draft reply, and automated routing decision.
     """
     message: str
     intent: Optional[str] = None
     confidence: Optional[float] = None
-    historical_match: Optional[HistoricalMatch] = None
+    historical_match: Optional[Union[HistoricalMatch, Dict[str, Any], str]] = None
     similarity: Optional[float] = None
     draft_reply: Optional[str] = None
     decision: Optional[str] = None

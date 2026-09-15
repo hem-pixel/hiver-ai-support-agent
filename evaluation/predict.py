@@ -1,10 +1,13 @@
+from pathlib import Path
 import pandas as pd
 import json
 import time
 from google import genai
 
-GOLDEN_PATH = r"D:\twcs\hiver_data\golden_set.csv"
-OUTPUT_PATH = r"D:\twcs\hiver_data\golden_predictions.csv"
+BASE_DIR = Path(__file__).resolve().parent.parent
+GOLDEN_PATH = BASE_DIR / "data" / "golden_set.csv"
+OUTPUT_PATH = BASE_DIR / "data" / "golden_predictions.csv"
+
 
 MODEL = "gemini-3.5-flash"
 

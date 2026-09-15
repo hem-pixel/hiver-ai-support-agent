@@ -1,8 +1,17 @@
+from pathlib import Path
+import sys
 import pandas as pd
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-GOLDEN_PATH = r"D:\twcs\hiver_data\golden_set.csv"
-PREDICTION_PATH = r"D:\twcs\hiver_data\golden_predictions.csv"
+BASE_DIR = Path(__file__).resolve().parent.parent
+GOLDEN_PATH = BASE_DIR / "data" / "golden_set.csv"
+PREDICTION_PATH = BASE_DIR / "data" / "golden_predictions.csv"
+
+if not PREDICTION_PATH.exists():
+    print(f"Predictions file not found at: {PREDICTION_PATH}")
+    print("Run evaluation/predict.py first to generate predictions.")
+    sys.exit(0)
+
 
 gold = pd.read_csv(GOLDEN_PATH)
 pred = pd.read_csv(PREDICTION_PATH)

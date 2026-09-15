@@ -1,4 +1,8 @@
+from pathlib import Path
 import pandas as pd
+
+BASE_DIR = Path(__file__).resolve().parent
+OUTPUT_PATH = BASE_DIR / "baseline_results.csv"
 
 results = pd.DataFrame({
     "Model": [
@@ -17,9 +21,9 @@ print("=" * 50)
 print(results.to_string(index=False))
 
 results.to_csv(
-    r"D:\twcs\evaluation\baseline_results.csv",
+    OUTPUT_PATH,
     index=False
 )
 
 print("\nSaved:")
-print(r"D:\twcs\evaluation\baseline_results.csv")
+print(OUTPUT_PATH)
