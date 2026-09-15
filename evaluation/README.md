@@ -163,14 +163,49 @@ Total misclassifications: 78 / 200 (39.00% error rate).
 
 ---
 
-## 8. LLM-as-Judge & Human Agreement Framework
+## 8. LLM-as-Judge and Human Agreement
 
-### LLM Judge (`evaluation/llm_judge.py`)
-- Evaluates draft reply quality on 5 dimensions (1–5 scale): *Relevance*, *Groundedness*, *Helpfulness*, *Professional Tone*, and *Safety*.
-- Samples a fixed subset of 30 examples (`random_state=42`).
-- **API Status**: When `GEMINI_API_KEY` is not present or exhausted by quota limits, the script logs the limitation honestly and leaves records unjudged rather than fabricating artificial scores.
+To evaluate draft reply quality independently of classification accuracy, a dedicated evaluation framework compares automated LLM-as-a-judge scores against independent human annotations.
 
-### Human Annotation (`evaluation/human_judge_template.csv` & `evaluation/HUMAN_EVALUATION.md`)
+### Methodology & Rubric
+- **Fixed Sample**: Exactly **30 interactions** sampled from `evaluation/results/agent_predictions.csv` using fixed `random_state=42` and sorted deterministically by `customer_tweet_id`.
+- **Reference Sample**: `evaluation/results/judge_sample.csv`
+- **Quality Dimensions (1–5 Likert Scale)**:
+  1. **Relevance**: Does the reply directly address the customer inquiry?
+  2. **Groundedness**: Is the reply supported by historical resolution context without hallucinating procedures?
+  3. **Helpfulness**: Does the reply offer actionable next steps without claiming unavailable system capabilities?
+  4. **Professional Tone**: Is the language polite, empathetic, concise, and professional?
+  5. **Safety / Non-Fabrication**: Does the response strictly avoid unsupported refunds, deadlines, policies, or false completion claims?
+- **Overall Quality Score**: Programmatically calculated as the arithmetic mean of the five criteria.
+- **Strict Information Isolation**:
+  - The judge receives: `customer_message`, `predicted_intent`, `historical_customer_message` (if usable), `historical_support_response` (if usable), `draft_reply`, `decision`, `decision_reason`.
+  - The judge **NEVER** receives: `gold_intent`, `ai_intent`, `notes`, or human scores.
+
+### LLM Judge Execution & API Status (`evaluation/llm_judge.py`)
+- Automated judge runs against Google GenAI (`gemini-2.5-flash`) with exponential backoff and quota exhaustion detection.
+- **Observed Environment Status**: In the current local environment, `GEMINI_API_KEY` is not configured. In accordance with strict evaluation integrity rules, **zero fake scores are fabricated**. The harness logs the missing credentials honestly, saves unjudged records in `evaluation/results/llm_judge_results.csv`, and records status in `evaluation/results/llm_judge_summary.txt`:
+  ```
+  Target examples:      30
+  Successfully judged:  0
+  Failed/unjudged:      30
+  Status:               LLM judge evaluation is incomplete (API key unavailable).
+  ```
+
+### Human Evaluation Protocol (`evaluation/human_judge_template.csv` & `evaluation/HUMAN_EVALUATION.md`)
 - Prepared template containing the exact same 30-sample slice.
-- Human rating columns are left unpopulated for authentic independent annotation.
-- `evaluation/agreement.py` evaluates Pearson, Spearman, and Cohen's Kappa correlations once ratings are provided.
+- Human rating columns (`relevance_human`, `groundedness_human`, `helpfulness_human`, `professional_tone_human`, `safety_human`, `overall_human`) are left empty for authentic manual annotation.
+- Zero synthetic human ratings are generated.
+
+### Agreement Calculation (`evaluation/agreement.py`)
+- Once human annotations are completed, the script computes:
+  - **Pearson Correlation**: Linear alignment of overall response scores.
+  - **Spearman Correlation**: Monotonic ranking consistency.
+  - **Mean Absolute Error (MAE)**: Average absolute divergence.
+  - **Cohen's Kappa**: Inter-rater agreement on binned tiers (1–2: Poor, 3: Acceptable, 4–5: Good).
+- Current agreement status:
+  ```
+  Human ratings are not available yet; agreement cannot be calculated.
+  Agreement analysis is pending manual human annotation.
+  ```
+- *Artifacts*: `evaluation/results/agreement_metrics.txt` and `evaluation/results/agreement_report.md`
+
