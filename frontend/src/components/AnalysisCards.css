@@ -1,0 +1,128 @@
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.metric-card {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.metric-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-badge-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  background-color: var(--primary-light);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  border: 1px solid var(--primary-border);
+}
+
+.metric-content {
+  margin: 6px 0 14px 0;
+}
+
+.intent-display {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.intent-chip {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.intent-slug {
+  font-size: 12px;
+  color: var(--text-muted);
+  background-color: var(--bg-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  width: fit-content;
+  font-family: monospace;
+}
+
+.metric-value-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.metric-number {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.metric-qualifier {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 9999px;
+}
+
+.metric-qualifier.high {
+  background-color: var(--badge-auto-bg);
+  color: var(--badge-auto-text);
+  border: 1px solid var(--badge-auto-border);
+}
+
+.metric-qualifier.low {
+  background-color: var(--badge-escalate-bg);
+  color: var(--badge-escalate-text);
+  border: 1px solid var(--badge-escalate-border);
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background-color: var(--bg-muted);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.progress-bar-fill.primary {
+  background-color: var(--primary);
+}
+
+.progress-bar-fill.accent {
+  background-color: #0ea5e9;
+}
+
+.metric-footer {
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
