@@ -1,0 +1,12 @@
+gold_intent,AUTO_HANDLE,ESCALATE,Total
+account_access_issue,5,19,24
+app_or_technical_issue,6,9,15
+cancellation_issue,3,11,14
+driver_issue,6,32,38
+fare_or_charge_issue,6,9,15
+other_support_issue,16,32,48
+payment_issue,5,3,8
+refund_request,1,11,12
+trip_issue,0,4,4
+uber_eats_issue,7,15,22
+Total,55,145,200

@@ -1,0 +1,3 @@
+Model,Accuracy
+TF-IDF + Logistic Regression,0.4
+Keyword Rule-Based,0.64

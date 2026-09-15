@@ -1,0 +1,30 @@
+======================================================================
+HIVER AI SUPPORT AGENT — CLASSIFICATION METRICS
+======================================================================
+Total Examples Evaluated: 200
+Accuracy:                0.6100 (61.00%)
+Macro Precision:         0.5606
+Macro Recall:            0.5341
+Macro F1:                0.5283
+Weighted F1:             0.6022
+
+----------------------------------------------------------------------
+PER-INTENT CLASSIFICATION BREAKDOWN
+----------------------------------------------------------------------
+                        precision    recall  f1-score   support
+
+  account_access_issue       0.52      0.67      0.58        24
+app_or_technical_issue       0.29      0.27      0.28        15
+    cancellation_issue       0.67      0.57      0.62        14
+          driver_issue       0.71      0.79      0.75        38
+  fare_or_charge_issue       0.33      0.20      0.25        15
+   other_support_issue       0.69      0.65      0.67        48
+         payment_issue       0.38      0.38      0.38         8
+        refund_request       1.00      0.42      0.59        12
+            trip_issue       0.29      0.50      0.36         4
+       uber_eats_issue       0.74      0.91      0.82        22
+
+              accuracy                           0.61       200
+             macro avg       0.56      0.53      0.53       200
+          weighted avg       0.62      0.61      0.60       200
+

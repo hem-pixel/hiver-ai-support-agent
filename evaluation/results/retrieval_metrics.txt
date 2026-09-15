@@ -1,0 +1,9 @@
+======================================================================
+HISTORICAL RETRIEVAL ANALYSIS
+======================================================================
+Total Evaluated:                  200
+Matches Found:                    200 (100.00%)
+No Match Found (sim <= 0.0):      0 (0.00%)
+Mean Similarity (matches):        0.2807
+Median Similarity (matches):      0.2317
+Below 0.20 Threshold:             66 (33.00%)
