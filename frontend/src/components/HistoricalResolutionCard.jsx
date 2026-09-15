@@ -2,11 +2,14 @@ import React from 'react';
 import './HistoricalResolutionCard.css';
 
 export default function HistoricalResolutionCard({
-  historicalCustomer = "@115873 I got charged twice for one ride I'm trying to get a refund can you help me",
-  historicalSupport = "@438093 We can take a look! Send us a note via https://t.co/zJ6aIZinzb so our team can get in touch.",
-  similarity = 0.7533,
-  intent = "fare_or_charge_issue"
+  historicalMatch,
+  similarity,
+  hasAnalyzed
 }) {
+  const customerMsg = historicalMatch?.customer_message || (typeof historicalMatch === 'string' ? historicalMatch : null);
+  const supportReply = historicalMatch?.support_response || null;
+  const numSimilarity = typeof similarity === 'number' ? similarity : 0;
+
   return (
     <div className="card historical-resolution-card">
       <div className="card-header">
@@ -22,41 +25,63 @@ export default function HistoricalResolutionCard({
           </div>
           <div>
             <h2 className="card-title">Retrieved Historical Resolution</h2>
-            <p className="card-description">Top matched resolution from the historical support corpus (500+ verified cases).</p>
+            <p className="card-description">Top matched resolution from the historical support corpus (500 verified pairs).</p>
           </div>
         </div>
 
-        <div className="retrieval-stats">
-          <span className="similarity-tag">Similarity: {similarity.toFixed(4)}</span>
-        </div>
+        {hasAnalyzed && (
+          <div className="retrieval-stats">
+            <span className="similarity-tag">Similarity: {numSimilarity.toFixed(4)}</span>
+          </div>
+        )}
       </div>
 
       <div className="card-body historical-body">
-        <div className="exchange-block">
-          <div className="exchange-label customer-label">
-            <span className="dot dot-customer"></span>
-            <span>Historical Customer Message</span>
+        {!hasAnalyzed ? (
+          <div className="empty-historical-state">
+            <p>Run analysis to retrieve similar historical customer interactions and agent resolutions.</p>
           </div>
-          <div className="exchange-bubble customer-bubble">
-            "{historicalCustomer}"
+        ) : !customerMsg ? (
+          <div className="empty-historical-state not-found">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+            <span>No suitable historical resolution found.</span>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="exchange-block">
+              <div className="exchange-label customer-label">
+                <span className="dot dot-customer"></span>
+                <span>Historical Customer Message</span>
+              </div>
+              <div className="exchange-bubble customer-bubble">
+                "{customerMsg}"
+              </div>
+            </div>
 
-        <div className="exchange-divider">
-          <div className="divider-line"></div>
-          <span className="divider-icon">↓</span>
-          <div className="divider-line"></div>
-        </div>
+            {supportReply && (
+              <>
+                <div className="exchange-divider">
+                  <div className="divider-line"></div>
+                  <span className="divider-icon">↓</span>
+                  <div className="divider-line"></div>
+                </div>
 
-        <div className="exchange-block">
-          <div className="exchange-label support-label">
-            <span className="dot dot-support"></span>
-            <span>Historical Uber Support Agent Response</span>
-          </div>
-          <div className="exchange-bubble support-bubble">
-            "{historicalSupport}"
-          </div>
-        </div>
+                <div className="exchange-block">
+                  <div className="exchange-label support-label">
+                    <span className="dot dot-support"></span>
+                    <span>Historical Uber Support Agent Response</span>
+                  </div>
+                  <div className="exchange-bubble support-bubble">
+                    "{supportReply}"
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

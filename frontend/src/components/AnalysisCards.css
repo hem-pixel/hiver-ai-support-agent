@@ -86,6 +86,12 @@
   border-radius: 9999px;
 }
 
+.metric-number.muted-text {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 .metric-qualifier.high {
   background-color: var(--badge-auto-bg);
   color: var(--badge-auto-text);
@@ -97,6 +103,13 @@
   color: var(--badge-escalate-text);
   border: 1px solid var(--badge-escalate-border);
 }
+
+.metric-qualifier.neutral {
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
 
 .progress-bar-bg {
   width: 100%;

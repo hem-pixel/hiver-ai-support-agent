@@ -1,7 +1,7 @@
 import React from 'react';
 import './Header.css';
 
-export default function Header() {
+export default function Header({ isConnected = true }) {
   return (
     <header className="top-header">
       <div className="header-left">
@@ -11,9 +11,9 @@ export default function Header() {
         </p>
       </div>
       <div className="header-right">
-        <div className="preview-indicator">
-          <span className="pulse-indicator"></span>
-          <span>UI Skeleton Mode</span>
+        <div className={`preview-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
+          <span className={`pulse-indicator ${isConnected ? 'online' : 'offline'}`}></span>
+          <span>{isConnected ? 'API Connected (Port 8000)' : 'API Disconnected'}</span>
         </div>
       </div>
     </header>

@@ -29,6 +29,25 @@
   gap: 12px;
 }
 
+.empty-historical-state {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  background-color: var(--bg-muted);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+}
+
+.empty-historical-state.not-found {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
 .exchange-block {
   display: flex;
   flex-direction: column;

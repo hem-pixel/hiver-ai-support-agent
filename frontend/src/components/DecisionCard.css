@@ -11,6 +11,10 @@
   border-left: 4px solid #10b981;
 }
 
+.decision-card.state-idle {
+  border-left: 4px solid var(--border);
+}
+
 .decision-header {
   padding: 20px 24px;
 }
@@ -24,6 +28,12 @@
   justify-content: center;
   flex-shrink: 0;
 }
+
+.state-idle .decision-icon-container {
+  background-color: var(--bg-muted);
+  color: var(--text-muted);
+}
+
 
 .state-escalate .decision-icon-container {
   background-color: var(--badge-escalate-bg);

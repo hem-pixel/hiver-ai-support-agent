@@ -2,18 +2,24 @@ import React from 'react';
 import './DecisionCard.css';
 
 export default function DecisionCard({
-  action = "ESCALATE",
-  reason = "Historical responses indicate that this issue requires direct support follow-up.",
-  onToggleAction
+  action,
+  reason,
+  hasAnalyzed
 }) {
   const isEscalate = action === "ESCALATE";
+  const isAutoHandle = action === "AUTO_HANDLE";
 
   return (
-    <div className={`card decision-card ${isEscalate ? 'state-escalate' : 'state-auto-handle'}`}>
+    <div className={`card decision-card ${hasAnalyzed ? (isEscalate ? 'state-escalate' : 'state-auto-handle') : 'state-idle'}`}>
       <div className="card-header decision-header">
         <div className="card-header-left">
           <div className="decision-icon-container">
-            {isEscalate ? (
+            {!hasAnalyzed ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 14 14" />
+              </svg>
+            ) : isEscalate ? (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
@@ -29,32 +35,22 @@ export default function DecisionCard({
           <div>
             <span className="decision-kicker">Routing Pipeline Decision</span>
             <div className="decision-badge-row">
-              <span className={`decision-badge ${isEscalate ? 'badge-escalate' : 'badge-auto'}`}>
-                {action}
-              </span>
-              <span className="decision-subtext">
-                {isEscalate ? 'Manual Agent Review Required' : 'Ready for Automated Resolution'}
-              </span>
+              {hasAnalyzed ? (
+                <>
+                  <span className={`decision-badge ${isEscalate ? 'badge-escalate' : 'badge-auto'}`}>
+                    {action}
+                  </span>
+                  <span className="decision-subtext">
+                    {isEscalate ? 'Manual Agent Review Required' : 'Automated Resolution Approved'}
+                  </span>
+                </>
+              ) : (
+                <span className="decision-subtext muted">
+                  Awaiting analysis...
+                </span>
+              )}
             </div>
           </div>
-        </div>
-
-        <div className="toggle-visual-state">
-          <span className="toggle-label">Test Visual State:</span>
-          <button
-            type="button"
-            className={`toggle-btn ${!isEscalate ? 'active' : ''}`}
-            onClick={() => onToggleAction("AUTO_HANDLE")}
-          >
-            AUTO-HANDLE
-          </button>
-          <button
-            type="button"
-            className={`toggle-btn ${isEscalate ? 'active' : ''}`}
-            onClick={() => onToggleAction("ESCALATE")}
-          >
-            ESCALATE
-          </button>
         </div>
       </div>
 
@@ -65,10 +61,12 @@ export default function DecisionCard({
             <line x1="12" y1="16" x2="12" y2="12" />
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          <span>Decision Reason & Rationale</span>
+          <span>Decision Reason &amp; Rationale</span>
         </div>
         <p className="reason-text">
-          {reason}
+          {hasAnalyzed
+            ? (reason || "Decision determined by policy routing engine.")
+            : "The agent will evaluate resolution similarity and escalation indicators to determine whether this ticket should be auto-handled or escalated."}
         </p>
 
         <div className="decision-rules-summary">

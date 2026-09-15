@@ -46,9 +46,30 @@
   font-weight: 600;
 }
 
+.preview-indicator.connected {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.preview-indicator.disconnected {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
 .pulse-indicator {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background-color: var(--primary);
 }
+
+.pulse-indicator.online {
+  background-color: #10b981;
+}
+
+.pulse-indicator.offline {
+  background-color: #ef4444;
+}
+

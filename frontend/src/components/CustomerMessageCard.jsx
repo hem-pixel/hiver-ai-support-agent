@@ -6,7 +6,8 @@ export default function CustomerMessageCard({
   setMessage,
   onAnalyze,
   isAnalyzing,
-  onLoadSample
+  onLoadSample,
+  error
 }) {
   return (
     <div className="card customer-message-card">
@@ -19,32 +20,43 @@ export default function CustomerMessageCard({
           </div>
           <div>
             <h2 className="card-title">Customer Inbound Message</h2>
-            <p className="card-description">Enter an incoming support inquiry to run through the AI pipeline.</p>
+            <p className="card-description">Enter an incoming customer inquiry to run through the AI pipeline.</p>
           </div>
         </div>
 
         <div className="sample-chips">
-          <span className="sample-label">Quick samples:</span>
+          <span className="sample-label">Quick scenarios:</span>
           <button
             type="button"
             className="chip-btn"
-            onClick={() => onLoadSample('overcharge')}
+            onClick={() => onLoadSample("I was charged too much for my Uber ride and want a refund")}
+            disabled={isAnalyzing}
           >
             Fare Overcharge
           </button>
           <button
             type="button"
             className="chip-btn"
-            onClick={() => onLoadSample('eats')}
+            onClick={() => onLoadSample("I cannot login to my Uber account")}
+            disabled={isAnalyzing}
           >
-            Eats Order Issue
+            Account Login
           </button>
           <button
             type="button"
             className="chip-btn"
-            onClick={() => onLoadSample('account')}
+            onClick={() => onLoadSample("My Uber driver was rude")}
+            disabled={isAnalyzing}
           >
-            Account Locked
+            Driver Conduct
+          </button>
+          <button
+            type="button"
+            className="chip-btn"
+            onClick={() => onLoadSample("Uber Eats delivery is late")}
+            disabled={isAnalyzing}
+          >
+            Eats Delivery
           </button>
         </div>
       </div>
@@ -56,7 +68,19 @@ export default function CustomerMessageCard({
           placeholder="Paste a customer support message here..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          disabled={isAnalyzing}
         />
+
+        {error && (
+          <div className="input-error-banner" role="alert">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
       </div>
 
       <div className="card-footer">
