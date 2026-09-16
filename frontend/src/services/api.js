@@ -1,5 +1,22 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 /**
+ * Helper to identify network or connection failures (backend offline / unreachable).
+ */
+function isNetworkError(error) {
+  if (!error) return false;
+  if (error.name === 'TypeError') return true;
+  const msg = (error.message || '').toLowerCase();
+  return (
+    msg.includes('failed to fetch') ||
+    msg.includes('networkerror') ||
+    msg.includes('load failed') ||
+    msg.includes('connection refused') ||
+    msg.includes('network request failed') ||
+    msg.includes('fetch failed')
+  );
+}
+
+/**
  * Check backend health.
  */
 export async function checkHealth() {
@@ -11,8 +28,8 @@ export async function checkHealth() {
     return await response.json();
   } catch (error) {
     throw new Error(
-      error.message.includes('Failed to fetch')
-        ? 'Backend service is unavailable. Please ensure the FastAPI server is running on http://localhost:8000.'
+      isNetworkError(error)
+        ? `FastAPI backend is offline or unavailable at ${API_BASE_URL}. Ensure the backend is running from backend/ directory with: python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload`
         : error.message
     );
   }
@@ -59,9 +76,9 @@ export async function analyzeMessage(message) {
     const data = await response.json();
     return data;
   } catch (error) {
-    if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+    if (isNetworkError(error)) {
       throw new Error(
-        'Backend server is unavailable. Please start the FastAPI backend on http://localhost:8000 (uvicorn app.main:app --port 8000).'
+        `FastAPI backend is offline or unavailable at ${API_BASE_URL}. The frontend is operating normally, but cannot connect to the backend service. Ensure the backend server is running from the backend/ directory with: python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload (or run "npm run dev" from repository root).`
       );
     }
     throw error;

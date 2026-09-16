@@ -1,0 +1,12 @@
+{
+  "name": "hiver-ai-support-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prototype AI Customer Support Agent for Uber Support inquiries",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:backend": "node scripts/dev.js --backend",
+    "dev:frontend": "node scripts/dev.js --frontend",
+    "build:frontend": "npm --prefix frontend run build"
+  }
+}
