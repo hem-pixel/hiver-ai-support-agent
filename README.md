@@ -298,7 +298,8 @@ python evaluation\agreement.py
 ### 7. Run Full Interactive Application
 ```powershell
 # Terminal 1 - Backend Server
-python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+cd backend
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 
 # Terminal 2 - Frontend Development Server
 cd frontend
