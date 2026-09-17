@@ -113,7 +113,34 @@
   font-size: 13px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.input-error-content {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.btn-retry-connection {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.btn-retry-connection:hover {
+  background-color: #b91c1c;
 }
 
 

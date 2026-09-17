@@ -28,18 +28,25 @@ export default function App() {
   // Check backend health on initial load and keep monitoring for auto-reconnect
   useEffect(() => {
     let isMounted = true;
+    let consecutiveFailures = 0;
 
     const verifyHealth = async () => {
       try {
         await checkHealth();
         if (isMounted) {
+          consecutiveFailures = 0;
           setIsConnected(true);
           // If a previous error was a backend disconnection banner, clear it automatically
           setError((prev) => (prev && prev.includes('FastAPI backend is offline') ? null : prev));
         }
       } catch {
         if (isMounted) {
-          setIsConnected(false);
+          consecutiveFailures += 1;
+          // Require at least 2 consecutive failures before switching badge to disconnected
+          // This prevents transient Windows IPv6 SYN or GC pauses from causing spurious UI errors
+          if (consecutiveFailures >= 2) {
+            setIsConnected(false);
+          }
         }
       }
     };
@@ -47,14 +54,25 @@ export default function App() {
     // Immediate check on mount
     verifyHealth();
 
-    // Auto-reconnect poll interval (checks every 3 seconds)
-    const interval = setInterval(verifyHealth, 3000);
+    // Auto-reconnect poll interval (checks every 3.5 seconds)
+    const interval = setInterval(verifyHealth, 3500);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
   }, []);
+
+  const handleRetryConnection = async () => {
+    try {
+      await checkHealth();
+      setIsConnected(true);
+      setError(null);
+    } catch (err) {
+      setIsConnected(false);
+      setError(err.message);
+    }
+  };
 
   const handleLoadSample = (sampleText) => {
     setMessage(sampleText);
@@ -164,6 +182,8 @@ export default function App() {
           isAnalyzing={isAnalyzing}
           onLoadSample={handleLoadSample}
           error={error}
+          onRetryConnection={handleRetryConnection}
+          isConnected={isConnected}
         />
 
         {/* 2. AI Analysis Section (3 Cards) */}
