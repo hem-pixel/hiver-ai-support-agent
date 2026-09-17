@@ -114,13 +114,15 @@ The evaluation harness was constructed under strict scientific controls:
 
 All metrics below are verified outputs generated directly by `evaluation/evaluate_agent.py` and `evaluation/compare_baselines.py`:
 
-### Classification Performance (200 Golden Examples)
+### Pipeline Agent Performance (200 Golden Examples)
 
-| Model / Pipeline | Evaluation Set | Accuracy | Macro F1 | Weighted F1 |
-|:---|:---:|:---:|:---:|:---:|
-| **Keyword Rule Baseline** | 50 Holdout | **64.00%** | 0.59 | 0.64 |
-| **TF-IDF + Logistic Regression** | 50 Holdout | **40.00%** | 0.14 | 0.28 |
-| **Support Agent Pipeline** | **200 Golden Set** | **61.00%** | **0.5283** | **0.6022** |
+Evaluated across the full 200-example human-verified golden set (`data/golden_set.csv`):
+
+- **Accuracy**: **61.00%** (122/200)
+- **Macro Precision**: **0.5606**
+- **Macro Recall**: **0.5341**
+- **Macro F1**: **0.5283**
+- **Weighted F1**: **0.6022**
 
 ### Per-Intent Performance of Support Agent (200 Examples)
 
@@ -139,17 +141,28 @@ All metrics below are verified outputs generated directly by `evaluation/evaluat
 | **Macro Average** | **0.56** | **0.53** | **0.53** | **200** |
 | **Weighted Average** | **0.62** | **0.61** | **0.60** | **200** |
 
-### Why Does the Simple Keyword Baseline Score Higher on Accuracy (64% vs. 61%)?
-The 64% baseline result was measured on a smaller 50-example stratified holdout. When evaluated across the entire 200-example golden set with real-world distribution imbalances, the full agent pipeline achieves 61.00% accuracy. The agent balances end-to-end procedural grounding, safe intent filtering, and conservative escalation rather than optimizing purely for lexical shortcut heuristics.
-
 ### Decision Routing Breakdown (200 Examples)
-- **`ESCALATE`**: **169 (84.50%)**
-- **`AUTO_HANDLE`**: **31 (15.50%)**
+- **`ESCALATE`**: **169/200 (84.5%)**
+- **`AUTO_HANDLE`**: **31/200 (15.5%)**
 
 ### Historical Retrieval Statistics (200 Examples)
-- Nearest Candidates Discovered: 200 (100.00%) | Mean Similarity: 0.2807 | Median: 0.2317
-- Usable Historical Matches ($\ge 0.20$): 134 (67.00%) | Mean Similarity: 0.3357 | Median: 0.2656
-- Below-Threshold Retrieval ($< 0.20$): 66 (33.00%) | Correctly exposed as `null` and routed to `ESCALATE`
+- **Average / Mean Top-1 Cosine Similarity**: **0.2807**
+- **Median Top-1 Similarity**: **0.2317**
+- **Similarity $\ge 0.20$**: **134/200 (67.0%)** (Usable historical match; Mean: 0.3357, Median: 0.2656)
+- **Similarity $< 0.20$**: **66/200 (33.0%)** (Exposed as `null` match, triggers `ESCALATE`)
+
+### Standalone Baseline Experiments (Separate 50-Example Stratified Holdout)
+
+> [!NOTE]
+> **Independent Benchmark**: The standalone baseline models were evaluated on a separate 50-example stratified holdout (`test_size=50`, `random_state=42`). Because they were evaluated on this 50-example holdout rather than the 200-example golden set, these baseline numbers are **not directly comparable** to the 200-example Support Agent pipeline evaluation.
+
+| Baseline Model | Evaluation Set | Accuracy | Macro F1 | Weighted F1 | Script |
+|:---|:---:|:---:|:---:|:---:|:---|
+| **Keyword Rule Baseline** | 50-Example Holdout | **64.00%** (32/50) | 0.59 | 0.64 | `evaluation/baseline_rules.py` |
+| **TF-IDF + Logistic Regression** | 50-Example Holdout | **40.00%** (20/50) | 0.14 | 0.28 | `evaluation/baseline_tfidf.py` |
+
+**Why Does the Keyword Baseline Score 64% on Its 50-Example Holdout vs. 61% for the Agent on 200 Examples?**
+The 64.00% keyword baseline was evaluated on a smaller 50-example stratified holdout where simple lexical shortcuts matched frequent patterns. Across the full 200-example golden set with real-world distribution imbalances and edge cases, the complete Support Agent pipeline achieves 61.00% accuracy. The agent balances end-to-end procedural grounding, safe intent filtering, and conservative escalation rather than relying on brittle lexical shortcut heuristics.
 
 ---
 
