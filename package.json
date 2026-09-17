@@ -8,5 +8,8 @@
     "dev:backend": "node scripts/dev.js --backend",
     "dev:frontend": "node scripts/dev.js --frontend",
     "build:frontend": "npm --prefix frontend run build"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }
