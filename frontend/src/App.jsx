@@ -25,11 +25,35 @@ export default function App() {
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
 
-  // Check backend health on initial load
+  // Check backend health on initial load and keep monitoring for auto-reconnect
   useEffect(() => {
-    checkHealth()
-      .then(() => setIsConnected(true))
-      .catch(() => setIsConnected(false));
+    let isMounted = true;
+
+    const verifyHealth = async () => {
+      try {
+        await checkHealth();
+        if (isMounted) {
+          setIsConnected(true);
+          // If a previous error was a backend disconnection banner, clear it automatically
+          setError((prev) => (prev && prev.includes('FastAPI backend is offline') ? null : prev));
+        }
+      } catch {
+        if (isMounted) {
+          setIsConnected(false);
+        }
+      }
+    };
+
+    // Immediate check on mount
+    verifyHealth();
+
+    // Auto-reconnect poll interval (checks every 3 seconds)
+    const interval = setInterval(verifyHealth, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleLoadSample = (sampleText) => {

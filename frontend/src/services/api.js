@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const CONFIGURED_API_URL = import.meta.env.VITE_API_URL;
+let activeBaseUrl = CONFIGURED_API_URL || 'http://localhost:8000';
+
 /**
  * Helper to identify network or connection failures (backend offline / unreachable).
  */
@@ -17,11 +19,51 @@ function isNetworkError(error) {
 }
 
 /**
+ * Execute fetch request with automatic loopback fallback between localhost and 127.0.0.1.
+ * On Windows, localhost often resolves to IPv6 [::1] while Uvicorn binds to IPv4 127.0.0.1.
+ * Fallback ensures seamless connection across all environments.
+ */
+async function fetchWithFallback(path, options = {}) {
+  // If user configured an explicit override via VITE_API_URL, use it directly
+  if (CONFIGURED_API_URL) {
+    return fetch(`${CONFIGURED_API_URL}${path}`, options);
+  }
+
+  try {
+    const res = await fetch(`${activeBaseUrl}${path}`, options);
+    return res;
+  } catch (err) {
+    if (isNetworkError(err)) {
+      const alternateUrl =
+        activeBaseUrl === 'http://localhost:8000'
+          ? 'http://127.0.0.1:8000'
+          : 'http://localhost:8000';
+
+      try {
+        const altRes = await fetch(`${alternateUrl}${path}`, options);
+        activeBaseUrl = alternateUrl; // Cache the responsive endpoint
+        return altRes;
+      } catch {
+        // If direct port fails, try relative path through Vite dev proxy
+        try {
+          const proxyRes = await fetch(path, options);
+          activeBaseUrl = '';
+          return proxyRes;
+        } catch {
+          // All strategies exhausted
+        }
+      }
+    }
+    throw err;
+  }
+}
+
+/**
  * Check backend health.
  */
 export async function checkHealth() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/health`);
+    const response = await fetchWithFallback('/api/health');
     if (!response.ok) {
       throw new Error(`Health check failed with status: ${response.status}`);
     }
@@ -29,7 +71,7 @@ export async function checkHealth() {
   } catch (error) {
     throw new Error(
       isNetworkError(error)
-        ? `FastAPI backend is offline or unavailable at ${API_BASE_URL}. Ensure the backend is running from backend/ directory with: python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload`
+        ? `FastAPI backend is offline or unavailable at ${activeBaseUrl}. Ensure the backend is running from backend/ directory with: python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload (or run "npm run dev" from repository root).`
         : error.message
     );
   }
@@ -48,7 +90,7 @@ export async function analyzeMessage(message) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+    const response = await fetchWithFallback('/api/analyze', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -78,7 +120,7 @@ export async function analyzeMessage(message) {
   } catch (error) {
     if (isNetworkError(error)) {
       throw new Error(
-        `FastAPI backend is offline or unavailable at ${API_BASE_URL}. The frontend is operating normally, but cannot connect to the backend service. Ensure the backend server is running from the backend/ directory with: python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload (or run "npm run dev" from repository root).`
+        `FastAPI backend is offline or unavailable at ${activeBaseUrl}. The frontend is operating normally, but cannot connect to the backend service. Ensure the backend server is running from the backend/ directory with: python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload (or run "npm run dev" from repository root).`
       );
     }
     throw error;

@@ -41,7 +41,50 @@ const onlyFrontend = args.includes('--frontend');
 const runBackend = onlyBackend || (!onlyBackend && !onlyFrontend);
 const runFrontend = onlyFrontend || (!onlyBackend && !onlyFrontend);
 
+const fs = require('fs');
 const children = [];
+
+function resolvePython() {
+  if (process.env.PYTHON) return process.env.PYTHON;
+
+  // Check common virtual environment locations
+  const isWin = process.platform === 'win32';
+  const pyRel = isWin ? 'Scripts/python.exe' : 'bin/python';
+  const venvCandidates = [
+    path.join(BACKEND_DIR, '.venv', pyRel),
+    path.join(BACKEND_DIR, 'venv', pyRel),
+    path.join(ROOT_DIR, '.venv', pyRel),
+    path.join(ROOT_DIR, 'venv', pyRel),
+  ];
+
+  for (const candidate of venvCandidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return 'python';
+}
+
+function spawnProcess(cmd, args = [], options = {}) {
+  const isWin = process.platform === 'win32';
+  if (isWin) {
+    // On Windows, child_process.spawn throws EINVAL when invoking .cmd/.bat
+    // without shell: true. Passing command and arguments as a single command string
+    // with shell: true avoids both EINVAL and Node's DEP0190 argument warning.
+    const quote = (str) =>
+      typeof str === 'string' && str.includes(' ') && !str.startsWith('"') && !str.startsWith("'")
+        ? `"${str}"`
+        : str;
+    const fullCmd = [quote(cmd), ...args.map(quote)].join(' ');
+    return spawn(fullCmd, {
+      shell: true,
+      ...options,
+    });
+  }
+
+  return spawn(cmd, args, options);
+}
 
 function killChild(child) {
   if (!child || child.killed) return;
@@ -111,8 +154,8 @@ if (runBackend) {
   console.log('[setup] Command: python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload');
   console.log('[setup] Backend Health URL: http://127.0.0.1:8000/api/health');
 
-  const pythonBin = process.env.PYTHON || 'python';
-  const backendProcess = spawn(
+  const pythonBin = resolvePython();
+  const backendProcess = spawnProcess(
     pythonBin,
     ['-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8000', '--reload'],
     {
@@ -135,7 +178,6 @@ if (runBackend) {
       console.error(`\x1b[31m[backend]\x1b[0m Process exited with code ${code}`);
     }
     if (runFrontend && !onlyBackend) {
-      // If backend died unexpectedly while running both, notify user
       console.log(`[dev] Backend stopped.`);
     }
   });
@@ -148,13 +190,12 @@ if (runFrontend) {
   console.log('[setup] Command: npm run dev');
   console.log('[setup] Frontend URL: http://localhost:5173');
 
-  const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  const frontendProcess = spawn(
-    npmCmd,
+  const frontendProcess = spawnProcess(
+    'npm',
     ['run', 'dev'],
     {
       cwd: FRONTEND_DIR,
-      env: process.env,
+      env: { ...process.env, HIV_DEV_RUNNER: runBackend ? '1' : '0' },
       stdio: ['inherit', 'pipe', 'pipe'],
     }
   );
