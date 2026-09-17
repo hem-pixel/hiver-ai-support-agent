@@ -3,8 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
-from app.models import HealthResponse
-from app.routes.analyze import router as analyze_router
+try:
+    from .models import HealthResponse
+    from .routes.analyze import router as analyze_router
+except (ImportError, ValueError):
+    from app.models import HealthResponse
+    from app.routes.analyze import router as analyze_router
 
 app = FastAPI(
     title="Hiver AI Support Agent API",
